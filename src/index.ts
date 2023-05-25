@@ -7,19 +7,18 @@ import { createFolderIfNotExist } from './fileSystem.ts'
 const toZoom = Number(process.env.TO_ZOOM) // До какого значения Zoom будет работать алгоритм
 const blockSize = Number(process.env.BLOCK_SIZE) // Стандартный размер блока (!! Должен быть степенью 2-ки !!)
 
-console.log(process.env.IMG_PATH)
+console.log('Img path:', process.env.IMG_PATH)
+
 const source = sharp(process.env.IMG_PATH).png() // Исходная картинка
 
 const { width: sourceWidth, height: sourceHeight } = await source.metadata()
 
-console.log('Исходный размер:', { sourceWidth, sourceHeight })
+console.log('Default size:', { sourceWidth, sourceHeight })
 
 const newWidth = newSize(sourceWidth ?? 0, blockSize)
 const newHeight = newSize(sourceHeight ?? 0, blockSize)
 
-console.log('Размер изменен на:', { newWidth, newHeight })
-
-console.log('debug 22', process.env.BG_COLOR)
+console.log('Size change to:', { newWidth, newHeight })
 
 const bigSource = source.resize(newWidth, newHeight, {
   kernel: 'cubic',
@@ -38,8 +37,9 @@ for (let z = 0; z < toZoom && getBaseLog(2, blockSize) - z > 0; z++) {
       await createFolderIfNotExist(fileFolder.split('/').slice(0, 4).join('/'))
 
       console.log(
-        { newWidth, newHeight, blockSize: zoomBlockSize },
-        { x, y, z: z + 1 }
+        'Tile creating:',
+        { blockSize: zoomBlockSize },
+        { x, y, zoom: z + 1 }
       )
 
       bigSource
