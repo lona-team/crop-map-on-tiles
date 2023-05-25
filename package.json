@@ -1,16 +1,20 @@
 {
-  "name": "cropmapontiles",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "crop-map-on-tiles",
+  "version": "2.0.0",
+  "main": "index.ts",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "ts-node --esm --experimental-specifier-resolution node ./src/index.ts"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Ningaro",
   "dependencies": {
-    "@types/sharp": "^0.30.4",
-    "sharp": "^0.30.7"
+    "dotenv": "16.0.3",
+    "sharp": "0.32.1"
+  },
+  "devDependencies": {
+    "@types/node": "20.2.3",
+    "prettier": "2.8.8",
+    "ts-node": "10.9.1",
+    "typescript": "5.0.4"
   }
 }
