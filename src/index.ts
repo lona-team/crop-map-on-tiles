@@ -5,7 +5,7 @@ import { newSize, getBaseLog } from './helpers.ts'
 import { createFolderIfNotExist } from './fileSystem.ts'
 
 const toZoom = Number(process.env.TO_ZOOM) // До какого значения Zoom будет работать алгоритм
-const blockSize = Number(process.env.BLOCK_SIZE) // Стандартный размер блока (!! Должен быть степенью 2-ки !!)
+const blockStartSize = Number(process.env.BLOCK_START_SIZE) // Стандартный размер блока (!! Должен быть степенью 2-ки !!)
 
 console.log('Img path:', process.env.IMG_PATH)
 
@@ -15,8 +15,8 @@ const { width: sourceWidth, height: sourceHeight } = await source.metadata()
 
 console.log('Default size:', { sourceWidth, sourceHeight })
 
-const newWidth = newSize(sourceWidth ?? 0, blockSize)
-const newHeight = newSize(sourceHeight ?? 0, blockSize)
+const newWidth = newSize(sourceWidth ?? 0, blockStartSize)
+const newHeight = newSize(sourceHeight ?? 0, blockStartSize)
 
 console.log('Size change to:', { newWidth, newHeight })
 
@@ -26,11 +26,12 @@ const bigSource = source.resize(newWidth, newHeight, {
   background: process.env.BG_COLOR, // Цвет фона подложки
 })
 
-for (let z = 0; z < toZoom && getBaseLog(2, blockSize) - z > 0; z++) {
-  const zoomBlockSize = Math.pow(2, getBaseLog(2, blockSize) - z)
+for (let z = 0; z < toZoom && getBaseLog(2, blockStartSize) - z > 0; z++) {
+  const zoomBlockSize = Math.pow(2, getBaseLog(2, blockStartSize) - z)
+
   for (let x = 0; x < newWidth; x += zoomBlockSize) {
     for (let y = 0; y < newHeight; y += zoomBlockSize) {
-      const fileFolder = `./build/tiles/${z + 1}`
+      const fileFolder = `./build/tiles/${z}`
 
       await createFolderIfNotExist(fileFolder.split('/').slice(0, 2).join('/'))
       await createFolderIfNotExist(fileFolder.split('/').slice(0, 3).join('/'))
@@ -39,20 +40,30 @@ for (let z = 0; z < toZoom && getBaseLog(2, blockSize) - z > 0; z++) {
       console.log(
         'Tile creating:',
         { blockSize: zoomBlockSize },
-        { x, y, zoom: z + 1 }
+        { x, y, zoom: z }
       )
 
-      bigSource
+      console.log(
+        'Start extracting for',
+        { blockSize: zoomBlockSize },
+        { x, y, zoom: z }
+      )
+
+      // Создаем тайл в стандартном разрешении
+      const tile = await bigSource
         .extract({
           width: zoomBlockSize,
           height: zoomBlockSize,
           left: x,
           top: y,
         })
-        .png()
-        .toFile(
-          `${fileFolder}/tile-${x / zoomBlockSize}-${y / zoomBlockSize}.png`
-        )
+        .toBuffer()
+
+      // Сохраняем тайл в разрешение указанном в переменных среды
+      sharp(tile)
+        .resize(Number(process.env.BLOCK_SIZE), Number(process.env.BLOCK_SIZE))
+        .png({ quality: 80, compressionLevel: 9 })
+        .toFile(`${fileFolder}/${x / zoomBlockSize}-${y / zoomBlockSize}.png`)
     }
   }
 }
