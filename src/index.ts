@@ -9,6 +9,8 @@ const blockStartSize = Number(process.env.BLOCK_START_SIZE) // Стандарт�
 
 console.log('Img path:', process.env.IMG_PATH)
 
+const fileName = process.env.IMG_PATH?.split('/').at(-1)
+
 const source = sharp(process.env.IMG_PATH).png() // Исходная картинка
 
 const { width: sourceWidth, height: sourceHeight } = await source.metadata()
@@ -31,7 +33,7 @@ for (let z = 0; z < toZoom && getBaseLog(2, blockStartSize) - z > 0; z++) {
 
   for (let x = 0; x < newWidth; x += zoomBlockSize) {
     for (let y = 0; y < newHeight; y += zoomBlockSize) {
-      const fileFolder = `./build/tiles/${z}`
+      const fileFolder = `./build/tiles-${fileName}/${z}`
 
       await createFolderIfNotExist(fileFolder.split('/').slice(0, 2).join('/'))
       await createFolderIfNotExist(fileFolder.split('/').slice(0, 3).join('/'))
