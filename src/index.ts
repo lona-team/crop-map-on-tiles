@@ -4,14 +4,14 @@ import sharp from 'sharp'
 import { newSize, getBaseLog } from './helpers.ts'
 import { createFolderIfNotExist } from './fileSystem.ts'
 
-const toZoom = Number(process.env.TO_ZOOM) // До какого значения Zoom будет работать алгоритм
-const blockStartSize = Number(process.env.BLOCK_START_SIZE) // Стандартный размер блока (!! Должен быть степенью 2-ки !!)
+const toZoom = Number(process.env.TO_ZOOM)
+const blockStartSize = Number(process.env.BLOCK_START_SIZE)
 
 console.log('Img path:', process.env.IMG_PATH)
 
 const fileName = process.env.IMG_PATH?.split('/').at(-1)
 
-const source = sharp(process.env.IMG_PATH).png() // Исходная картинка
+const source = sharp(process.env.IMG_PATH).png()
 
 const { width: sourceWidth, height: sourceHeight } = await source.metadata()
 
@@ -25,7 +25,7 @@ console.log('Size change to:', { newWidth, newHeight })
 const bigSource = source.resize(newWidth, newHeight, {
   kernel: 'cubic',
   fit: 'contain',
-  background: process.env.BG_COLOR, // Цвет фона подложки
+  background: process.env.BG_COLOR,
 })
 
 for (let z = 0; z < toZoom && getBaseLog(2, blockStartSize) - z > 0; z++) {
@@ -35,8 +35,6 @@ for (let z = 0; z < toZoom && getBaseLog(2, blockStartSize) - z > 0; z++) {
     for (let y = 0; y < newHeight; y += zoomBlockSize) {
       const fileFolder = `./build/tiles-${fileName}/${z}`
 
-      await createFolderIfNotExist(fileFolder.split('/').slice(0, 2).join('/'))
-      await createFolderIfNotExist(fileFolder.split('/').slice(0, 3).join('/'))
       await createFolderIfNotExist(fileFolder.split('/').slice(0, 4).join('/'))
 
       console.log(
@@ -51,7 +49,6 @@ for (let z = 0; z < toZoom && getBaseLog(2, blockStartSize) - z > 0; z++) {
         { x, y, zoom: z }
       )
 
-      // Создаем тайл в стандартном разрешении
       const tile = await bigSource
         .extract({
           width: zoomBlockSize,
@@ -61,7 +58,6 @@ for (let z = 0; z < toZoom && getBaseLog(2, blockStartSize) - z > 0; z++) {
         })
         .toBuffer()
 
-      // Сохраняем тайл в разрешение указанном в переменных среды
       sharp(tile)
         .resize(Number(process.env.BLOCK_SIZE), Number(process.env.BLOCK_SIZE))
         .png({ quality: 80, compressionLevel: 9 })
