@@ -58,10 +58,14 @@ for (let z = 0; z < toZoom && getBaseLog(2, blockStartSize) - z > 0; z++) {
         })
         .toBuffer()
 
+      const tileFileName = `${fileFolder}/${x / zoomBlockSize}-${
+        y / zoomBlockSize
+      }.png`
+
       sharp(tile)
         .resize(Number(process.env.BLOCK_SIZE), Number(process.env.BLOCK_SIZE))
         .png({ quality: 80, compressionLevel: 9 })
-        .toFile(`${fileFolder}/${x / zoomBlockSize}-${y / zoomBlockSize}.png`)
+        .toFile(tileFileName)
     }
   }
 }
