@@ -43,12 +43,6 @@ for (let z = 0; z < toZoom && getBaseLog(2, blockStartSize) - z > 0; z++) {
         { x, y, zoom: z }
       )
 
-      console.log(
-        'Start extracting for',
-        { blockSize: zoomBlockSize },
-        { x, y, zoom: z }
-      )
-
       const tile = await bigSource
         .extract({
           width: zoomBlockSize,
